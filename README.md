@@ -31,6 +31,6 @@ This plugin requires that:
 ## References
 
 Joomla update: http://update.joomla.org/core/sts/list_sts.xml  
-Nagios: https://www.nagios.org/
-Shebang: https://en.wikipedia.org/wiki/Shebang_(Unix)
+Nagios: https://www.nagios.org/  
+Shebang: https://en.wikipedia.org/wiki/Shebang_(Unix)  
 SimpleXML: http://php.net/manual/en/book.simplexml.php
