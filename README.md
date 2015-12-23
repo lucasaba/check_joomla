@@ -19,7 +19,18 @@ It is a work in progress and is tested against version 3.* of Joomla.
  check_command                   check_nrpe!check_joomla
 ```
 
+## Requirements
+
+This plugin requires that:
+
+- you have installed a PHP interpreter
+- the shebang is correctly handled from your system
+- the SimpleXML extension is loaded and available
+- (probably) that SimpleXML is able to access the internet and retrieve the update instractions from joomla
+
 ## References
 
 Joomla update: http://update.joomla.org/core/sts/list_sts.xml  
 Nagios: https://www.nagios.org/
+Shebang: https://en.wikipedia.org/wiki/Shebang_(Unix)
+SimpleXML: http://php.net/manual/en/book.simplexml.php
