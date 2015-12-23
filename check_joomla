@@ -1,0 +1,60 @@
+#!/usr/bin/php
+<?php
+if($argc != 2) {
+    echo "Usage: check_joomla <path_to_joomla>\r\n";
+    exit(3);
+}
+
+$path=$argv[1];
+
+//Check if path ends with directory separator
+if(substr($path, -1, 1) != DIRECTORY_SEPARATOR) {
+    $path .= DIRECTORY_SEPARATOR;
+}
+
+//Check if path exists
+if(! file_exists($path.'index.php')) {
+    echo $path."\n";
+    echo "Joomla root folder not found";
+    exit(3);
+}
+
+if(file_exists($path."libraries/cms/version/version.php")) {
+    // Joomla version >= 2.5
+    $version_file = file_get_contents($path."libraries/cms/version/version.php");
+    preg_match_all('/\$RELEASE\s=\s\'[0-9]\.[0-9]{1,2}\';/', $version_file, $matches);
+    eval($matches[0][0]);
+    preg_match_all('/\$DEV_LEVEL\s=\s\'[0-9]{1,2}\';/', $version_file, $matches);
+    eval($matches[0][0]);
+
+    if(isset($RELEASE) && isset($DEV_LEVEL)) {
+        $update_file = simplexml_load_file('http://update.joomla.org/core/sts/list_sts.xml');
+        if($update_file === false) {
+            echo "Unable to fetch update's list from joomla";
+            exit(3);
+        }
+        //Check if there's a specific upgrade for the actual version
+        foreach($update_file->children() as $extension) {
+            if($extension['targetplatformversion'] == $RELEASE.".".$DEV_LEVEL) {
+                echo "Joomla update available. Installed version: $RELEASE.$DEV_LEVEL. Can be updated to ".$extension['version']."\n";
+                exit(1);
+            }
+        }
+
+        foreach($update_file->children() as $extension) {
+            if($extension['targetplatformversion'] == $RELEASE) {
+                $dev_next = str_replace($RELEASE.".", "", $extension['version']);
+                if($dev_next > $DEV_LEVEL) {
+                    echo "Joomla update available. Installed version: $RELEASE.$DEV_LEVEL. Can be updated to ".$extension['version']."\n";
+                    exit(1);
+                } else {
+                    echo "Joomla already updated\n";
+                    exit(0);
+                }
+                break;
+            }
+        }
+    }
+}
+echo "Manual check required\n";
+exit(3);
