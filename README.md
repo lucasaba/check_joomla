@@ -11,7 +11,7 @@ It is a work in progress and is tested against version 3.* of Joomla.
 - Update nrpe config file
   - Find the command's section
   - Add the line ```command[check_joomla]=/usr/lib/nagios/plugins/check_joomla <path_to_joomla>```
-  - Chenge the <path_to_joomla> to fit your needs
+  - Change the <path_to_joomla> to fit your needs
 - Restart nrpe service (*sudo service nagios-nrpe-server restart*)
 - Add the command to your service definition:
 
