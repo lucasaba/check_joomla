@@ -1,11 +1,57 @@
 #!/usr/bin/php
 <?php
-if($argc != 2) {
-    echo "Usage: check_joomla <path_to_joomla>\r\n";
-    exit(3);
+/**
+ * Copyright (c) Luca Saba <lucasaba@gmail.com>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ **/
+
+$CJ_VERSION='0.2';
+
+$shortopts = "V::v::c::p:h";
+$longopts = array("verbose::", "version::", "critical::", "path:");
+
+$options = getopt($shortopts, $longopts);
+
+if(isset($options['V'])) {
+    echo "check_joomla Nagios plugin $CJ_VERSION (c) Luca Saba <lucasaba\@gmail.com>\n";
+    exit(0);
 }
 
-$path=$argv[1];
+if(isset($options['h']) || (! isset($options['p']) && !isset($options['path']))) {
+    echo "
+
+check_joomla Nagios plugin $CJ_VERSION (c) Luca Saba <lucasaba\@gmail.com>
+
+Usage: check_plugin [-w=<warn>] [-c=<crit>] [-V] [-v] [-h] -p=<path_to_joomla_root>
+
+-p, --path=INTEGER
+   Path to Joomla root folder
+-c, --critical
+   check_joomla fires a warning as default. If you want to rise a critical error, use this option
+-V, --version
+   Output version information for the plugin
+-v, --verbose
+   Enable verbose output
+-h, --help
+   Show this help\n";
+    exit(0);
+}
+
+$verbose = isset($options['v']);
+
+$path = (isset($options['p'])) ? $options['p'] : $options['path'];
 
 //Check if path ends with directory separator
 if(substr($path, -1, 1) != DIRECTORY_SEPARATOR) {
@@ -13,48 +59,87 @@ if(substr($path, -1, 1) != DIRECTORY_SEPARATOR) {
 }
 
 //Check if path exists
-if(! file_exists($path.'index.php')) {
+if($verbose) {
+    echo "Looking for version.php file inside Joomla\n";
+}
+if(! file_exists($path.'libraries/cms/version/version.php')) {
     echo $path."\n";
     echo "Joomla root folder not found";
     exit(3);
 }
+if($verbose) {
+    echo "Joomla's version.php file found\n";
+}
 
-if(file_exists($path."libraries/cms/version/version.php")) {
-    // Joomla version >= 2.5
-    $version_file = file_get_contents($path."libraries/cms/version/version.php");
-    preg_match_all('/\$RELEASE\s=\s\'[0-9]\.[0-9]{1,2}\';/', $version_file, $matches);
-    eval($matches[0][0]);
-    preg_match_all('/\$DEV_LEVEL\s=\s\'[0-9]{1,2}\';/', $version_file, $matches);
-    eval($matches[0][0]);
+$version_file = file_get_contents($path."libraries/cms/version/version.php");
+preg_match_all('/\$RELEASE\s=\s\'[0-9]\.[0-9]{1,2}\';/', $version_file, $matches);
+eval($matches[0][0]);
+if(! isset($RELEASE)) {
+    echo "I couldn't find the your Joomla's RELEASE...check that ".$path."libraries/cms/version/version.php exists and is readable\n";
+    exit(3);
+}
+if($verbose) {
+    echo "Extracted Joomla's release number: $RELEASE\n";
+}
+preg_match_all('/\$DEV_LEVEL\s=\s\'[0-9]{1,2}\';/', $version_file, $matches);
+eval($matches[0][0]);
+if(! isset($DEV_LEVEL)) {
+    echo "I couldn't find the your Joomla's DEV_LEVEL...check that ".$path."libraries/cms/version/version.php exists and is readable\n";
+    exit(3);
+}
+if($verbose) {
+    echo "Extracted Joomla's dev level number: $DEV_LEVEL\n";
+}
 
-    if(isset($RELEASE) && isset($DEV_LEVEL)) {
-        $update_file = simplexml_load_file('http://update.joomla.org/core/sts/list_sts.xml');
-        if($update_file === false) {
-            echo "Unable to fetch update's list from joomla";
-            exit(3);
+if(isset($RELEASE) && isset($DEV_LEVEL)) {
+    if($verbose) {
+        echo "Getting last updated from Joomla...\n";
+    }
+    $update_file = simplexml_load_file('http://update.joomla.org/core/sts/list_sts.xml');
+    if($update_file === false) {
+        echo "Unable to fetch update's list from joomla";
+        exit(3);
+    } else {
+        if($verbose) {
+            echo "Updates fetched. Analyzing...\n";
         }
-        //Check if there's a specific upgrade for the actual version
-        foreach($update_file->children() as $extension) {
-            if($extension['targetplatformversion'] == $RELEASE.".".$DEV_LEVEL) {
-                echo "Joomla update available. Installed version: $RELEASE.$DEV_LEVEL. Can be updated to ".$extension['version']."\n";
+    }
+    //Check if there's a specific upgrade for the actual version
+    if($verbose) {
+        echo "Checking for updates for your specific joomla version\n";
+    }
+    foreach($update_file->children() as $extension) {
+        if($extension['targetplatformversion'] == $RELEASE.".".$DEV_LEVEL) {
+            echo "Joomla update available. Installed version: $RELEASE.$DEV_LEVEL. Can be updated to ".$extension['version']."\n";
+            if(isset($options['c']) || isset($options['critial'])) {
+                exit(2);
+            } else {
                 exit(1);
             }
         }
+    }
 
-        foreach($update_file->children() as $extension) {
-            if($extension['targetplatformversion'] == $RELEASE) {
-                $dev_next = str_replace($RELEASE.".", "", $extension['version']);
-                if($dev_next > $DEV_LEVEL) {
-                    echo "Joomla update available. Installed version: $RELEASE.$DEV_LEVEL. Can be updated to ".$extension['version']."\n";
-                    exit(1);
+    if($verbose) {
+        echo "Nothing specific found. Checking if your \$DEV_LEVEL needs an update...\n";
+    }
+    foreach($update_file->children() as $extension) {
+        if($extension['targetplatformversion'] == $RELEASE) {
+            $dev_next = str_replace($RELEASE.".", "", $extension['version']);
+            if($dev_next > $DEV_LEVEL) {
+                echo "Joomla update available. Installed version: $RELEASE.$DEV_LEVEL. Can be updated to ".$extension['version']."\n";
+                if(isset($options['c']) || isset($options['critial'])) {
+                    exit(2);
                 } else {
-                    echo "Joomla already updated\n";
-                    exit(0);
+                    exit(1);
                 }
-                break;
+            } else {
+                echo "Joomla already updated\n";
+                exit(0);
             }
+            break;
         }
     }
 }
-echo "Manual check required\n";
+
+echo "Some problem has occurred. A manual check is required\n";
 exit(3);
