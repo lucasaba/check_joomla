@@ -95,7 +95,7 @@ if(isset($RELEASE) && isset($DEV_LEVEL)) {
     if($verbose) {
         echo "Getting last updated from Joomla...\n";
     }
-    $update_file = simplexml_load_file('http://update.joomla.org/core/sts/list_sts.xml');
+    $update_file = simplexml_load_file('http://update.joomla.org/core/list.xml');
     if($update_file === false) {
         echo "Unable to fetch update's list from joomla";
         exit(3);
