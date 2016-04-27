@@ -124,6 +124,10 @@ if(isset($RELEASE) && isset($DEV_LEVEL)) {
     }
     foreach($update_file->children() as $extension) {
         if($extension['targetplatformversion'] == $RELEASE) {
+            if((float) $extension['version'] > (float) $extension['targetplatformversion']) {
+                echo "Joomla update available. Installed version: $RELEASE.$DEV_LEVEL. Can be updated to ".$extension['version']."\n";
+                exit(1);
+            }
             $dev_next = str_replace($RELEASE.".", "", $extension['version']);
             if($dev_next > $DEV_LEVEL) {
                 echo "Joomla update available. Installed version: $RELEASE.$DEV_LEVEL. Can be updated to ".$extension['version']."\n";
