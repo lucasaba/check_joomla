@@ -17,7 +17,7 @@
  *
  **/
 
-$CJ_VERSION='0.2';
+$CJ_VERSION='0.3';
 
 $shortopts = "V::v::c::p:h";
 $longopts = array("verbose::", "version::", "critical::", "path:");
