@@ -17,7 +17,7 @@
  *
  **/
 
-$CJ_VERSION='0.3.1';
+$CJ_VERSION='0.5';
 
 $shortopts = "V::v::c::p:h";
 $longopts = array("verbose::", "version::", "critical::", "path:");
@@ -72,21 +72,25 @@ if($verbose) {
 }
 
 $version_file = file_get_contents($path."libraries/cms/version/version.php");
-preg_match_all('/\$RELEASE\s=\s\'[0-9]\.[0-9]{1,2}\';/', $version_file, $matches);
-eval($matches[0][0]);
-if(! isset($RELEASE)) {
+preg_match_all('/RELEASE\s=\s\'[0-9]\.[0-9]{1,2}\';/', $version_file, $matches);
+if(! isset($matches[0][0])) {
     echo "I couldn't find the your Joomla's RELEASE...check that ".$path."libraries/cms/version/version.php exists and is readable\n";
     exit(3);
 }
+preg_match_all("/[0-9]{1,}\.[0-9]{1,}/", $matches[0][0], $rel_match);
+$RELEASE=$rel_match[0][0];
+
 if($verbose) {
     echo "Extracted Joomla's release number: $RELEASE\n";
 }
-preg_match_all('/\$DEV_LEVEL\s=\s\'[0-9]{1,2}\';/', $version_file, $matches);
-eval($matches[0][0]);
-if(! isset($DEV_LEVEL)) {
+preg_match_all('/DEV_LEVEL\s=\s\'[0-9]{1,2}\';/', $version_file, $matches);
+if(! isset($matches[0][0])) {
     echo "I couldn't find the your Joomla's DEV_LEVEL...check that ".$path."libraries/cms/version/version.php exists and is readable\n";
     exit(3);
 }
+preg_match_all("/[0-9]{1,}/", $matches[0][0], $dev_match);
+$DEV_LEVEL=$dev_match[0][0];
+
 if($verbose) {
     echo "Extracted Joomla's dev level number: $DEV_LEVEL\n";
 }
@@ -108,10 +112,11 @@ if(isset($RELEASE) && isset($DEV_LEVEL)) {
     if($verbose) {
         echo "Checking for updates for your specific joomla version\n";
     }
+    $specific = $RELEASE.".".$DEV_LEVEL;
     foreach($update_file->children() as $extension) {
-        if($extension['targetplatformversion'] == $RELEASE.".".$DEV_LEVEL) {
-            echo "Joomla update available. Installed version: $RELEASE.$DEV_LEVEL. Can be updated to ".$extension['version']."\n";
-            if(isset($options['c']) || isset($options['critial'])) {
+        if($extension['targetplatformversion'] == $specific) {
+            echo "Joomla update available. Installed version: $specific. Can be updated to ".$extension['version']."\n";
+            if(isset($options['c']) || isset($options['critical'])) {
                 exit(2);
             } else {
                 exit(1);
@@ -124,7 +129,7 @@ if(isset($RELEASE) && isset($DEV_LEVEL)) {
     }
     foreach($update_file->children() as $extension) {
         if($extension['targetplatformversion'] == $RELEASE) {
-            if((float) $extension['version'] > (float) $extension['targetplatformversion']) {
+            if(version_compare($extension['version'], $specific) > 0) {
                 echo "Joomla update available. Installed version: $RELEASE.$DEV_LEVEL. Can be updated to ".$extension['version']."\n";
                 exit(1);
             }
