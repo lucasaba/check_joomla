@@ -17,7 +17,7 @@
  *
  **/
 
-$CJ_VERSION='0.5';
+$CJ_VERSION='0.6';
 
 $shortopts = "V::v::c::p:h";
 $longopts = array("verbose::", "version::", "critical::", "path:");
@@ -59,22 +59,32 @@ if(substr($path, -1, 1) != DIRECTORY_SEPARATOR) {
 }
 
 //Check if path exists
+$joomlaPrev38versionFile = 'libraries/cms/version/version.php';
+$joomlaPost38versionFile = 'libraries/src/Version.php';
+$joomlaVersionFile       = '';
+
 if($verbose) {
     echo "Looking for version.php file inside Joomla\n";
 }
-if(! file_exists($path.'libraries/cms/version/version.php')) {
+
+if(file_exists($path.$joomlaPrev38versionFile)) {
+    $joomlaVersionFile = $joomlaPrev38versionFile;
+} elseif(file_exists($path.$joomlaPost38versionFile)) {
+    $joomlaVersionFile = $joomlaPost38versionFile;
+} else {
     echo $path."\n";
     echo "Joomla root folder not found";
     exit(3);
 }
+
 if($verbose) {
     echo "Joomla's version.php file found\n";
 }
 
-$version_file = file_get_contents($path."libraries/cms/version/version.php");
+$version_file = file_get_contents($path.$joomlaVersionFile);
 preg_match_all('/RELEASE\s=\s\'[0-9]\.[0-9]{1,2}\';/', $version_file, $matches);
 if(! isset($matches[0][0])) {
-    echo "I couldn't find the your Joomla's RELEASE...check that ".$path."libraries/cms/version/version.php exists and is readable\n";
+    echo "I couldn't find the your Joomla's RELEASE...check that ".$path."$joomlaVersionFile exists and is readable\n";
     exit(3);
 }
 preg_match_all("/[0-9]{1,}\.[0-9]{1,}/", $matches[0][0], $rel_match);
@@ -85,7 +95,7 @@ if($verbose) {
 }
 preg_match_all('/DEV_LEVEL\s=\s\'[0-9]{1,2}\';/', $version_file, $matches);
 if(! isset($matches[0][0])) {
-    echo "I couldn't find the your Joomla's DEV_LEVEL...check that ".$path."libraries/cms/version/version.php exists and is readable\n";
+    echo "I couldn't find the your Joomla's DEV_LEVEL...check that ".$path."$joomlaVersionFile exists and is readable\n";
     exit(3);
 }
 preg_match_all("/[0-9]{1,}/", $matches[0][0], $dev_match);
