@@ -61,12 +61,12 @@ function check($options, $CJ_VERSION) {
         $path .= DIRECTORY_SEPARATOR;
     }
 
-    $current = getCurrentVersion($path);
+    $current = getCurrentVersion($path, $verbose);
 
     $exitCode = calculateUpdate($current, $verbose);
 
     if($exitCode === 0) {
-        echo sprintf("No update available for your current Joomla version: %s.%s.%s",
+        echo sprintf("No update available for your current Joomla version: %s.%s.%s\n",
             $current['MAJOR'],
             $current['MINOR'],
             $current['PATCH']
@@ -107,7 +107,7 @@ function getPrev38Version($path, $verbose)
     $version_file = file_get_contents($path);
     preg_match_all('/RELEASE\s=\s\'[0-9]\.[0-9]{1,2}\';/', $version_file, $matches);
     if (!isset($matches[0][0])) {
-        echo "I couldn't find the your Joomla's RELEASE...check that $path exists and is readable\n";
+        echo "I couldn't find your Joomla's RELEASE...check that $path exists and is readable\n";
         exit(3);
     }
     preg_match_all("/[0-9]+\.[0-9]+/", $matches[0][0], $rel_match);
@@ -118,7 +118,7 @@ function getPrev38Version($path, $verbose)
     }
     preg_match_all('/DEV_LEVEL\s=\s\'[0-9]{1,2}\';/', $version_file, $matches);
     if (!isset($matches[0][0])) {
-        echo "I couldn't find the your Joomla's DEV_LEVEL...check that $path exists and is readable\n";
+        echo "I couldn't find your Joomla's DEV_LEVEL...check that $path exists and is readable\n";
         exit(3);
     }
     preg_match_all("/[0-9]+/", $matches[0][0], $dev_match);
@@ -136,7 +136,7 @@ function getPrev38Version($path, $verbose)
     ];
 
     if (empty($result['MAJOR']) || empty($result['MINOR']) || empty($result['PATCH'])) {
-        echo "I couldn't find the your Joomla's RELEASE...check that $path exists and is readable\n";
+        echo "I couldn't find your Joomla's DEV_LEVEL...check that $path exists and is readable\n";
         exit(3);
     }
 
@@ -189,8 +189,8 @@ function getPost38Version($path, $verbose)
         'PATCH' => $PATCH
     ];
 
-    if (empty($result['MAJOR']) || empty($result['MINOR']) || empty($result['PATCH'])) {
-        echo "I couldn't find the your Joomla's RELEASE...check that $path exists and is readable\n";
+    if (null === $result['MAJOR'] || null === $result['MINOR'] || null === $result['PATCH']) {
+        echo "I couldn't find your Joomla's version...check that $path exists and is readable\n";
         exit(3);
     }
 
