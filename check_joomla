@@ -216,8 +216,8 @@ function calculateUpdate($result, $verbose = false, $content = null)
         }
     }
 
-    $release = $result['MAJOR'] . '.' . $result['MINOR'];
-    $specific = $release . '.' . $result['PATCH'];
+    $release = sprintf('%s.%s', $result['MAJOR'], $result['MINOR']);
+    $specific = sprintf('%s.%s', $release, $result['PATCH']);
 
     // Test against specific
     if($verbose) {
