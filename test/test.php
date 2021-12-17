@@ -53,6 +53,7 @@ $updatefileContent = '<extensionset name="Joomla Core" description="Joomla! Core
 <extension name="Joomla" element="joomla" type="file" version="3.10.0" targetplatformversion="3.7" detailsurl="https://update.joomla.org/core/extension.xml"/>
 <extension name="Joomla" element="joomla" type="file" version="3.10.0" targetplatformversion="3.8" detailsurl="https://update.joomla.org/core/extension.xml"/>
 <extension name="Joomla" element="joomla" type="file" version="3.10.0" targetplatformversion="3.9" detailsurl="https://update.joomla.org/core/extension.xml"/>
+<extension name="Joomla" element="joomla" type="file" version="3.10.4" targetplatformversion="3.10" detailsurl="https://update.joomla.org/core/sts/extension_sts.xml"/>
 <extension name="Joomla" element="joomla" type="file" version="4.0.0" targetplatformversion="3.10" detailsurl="https://update.joomla.org/core/sts/extension_sts.xml"/>
 <extension name="Joomla" element="joomla" type="file" version="4.0.0" targetplatformversion="4.0" detailsurl="https://update.joomla.org/core/sts/extension_sts.xml"/>
 </extensionset>';
@@ -92,6 +93,19 @@ $result = [
 $calculated = calculateUpdate($result, true, $updatefileContent);
 
 $result = test($calculated, 0); // Should not update
+if ($result) {
+    exit($result);
+}
+
+$result = [
+    'MAJOR' => 3,
+    'MINOR' => 10,
+    'PATCH' => 2
+];
+
+$calculated = calculateUpdate($result, true, $updatefileContent);
+
+$result = test($calculated, 1); // Should update
 if ($result) {
     exit($result);
 }
