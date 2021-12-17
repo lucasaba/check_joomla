@@ -244,7 +244,7 @@ function calculateUpdate($result, $verbose = false, $content = null)
             if ($extension['version']->__toString() === $specific) {
                 return 0;
             }
-            echo "Joomla update available. Installed version $release can be updated to ".$extension['version']."\n";
+            echo "Joomla update available. Installed version $specific can be updated to ".$extension['version']."\n";
             if(isset($options['c']) || isset($options['critical'])) {
                 return 2;
             } else {

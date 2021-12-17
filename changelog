@@ -1,3 +1,6 @@
+1.0.1:
+  - Fixes update message: show specific version instead of release
+
 1.0.0:
   - New way of handling Joomla version
   - Works for Joomla greater than 3.5
