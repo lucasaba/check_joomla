@@ -202,7 +202,7 @@ function calculateUpdate($result, $verbose = false, $content = null)
     if ($verbose) {
         echo "Getting last updated from Joomla...\n";
     }
-    $update_file = simplexml_load_file('http://update.joomla.org/core/list.xml');
+    $update_file = simplexml_load_file('https://update.joomla.org/core/list.xml');
     if (null !== $content) {
         $update_file = simplexml_load_string($content);
     }
@@ -218,6 +218,7 @@ function calculateUpdate($result, $verbose = false, $content = null)
 
     $release = sprintf('%s.%s', $result['MAJOR'], $result['MINOR']);
     $specific = sprintf('%s.%s', $release, $result['PATCH']);
+    $patch = $result['PATCH'];
 
     // Test against specific
     if($verbose) {
@@ -241,7 +242,12 @@ function calculateUpdate($result, $verbose = false, $content = null)
 
     foreach ($update_file->children() as $extension) {
         if ($extension['targetplatformversion']->__toString() === $release) {
+            $values = explode('.', $extension['version']->__toString());
+            $newPatch = count($values) === 3 ? intval($values[2]) : 0;
             if ($extension['version']->__toString() === $specific) {
+                return 0;
+            }
+            if ($newPatch <= $patch) {
                 return 0;
             }
             echo "Joomla update available. Installed version $specific can be updated to ".$extension['version']."\n";
