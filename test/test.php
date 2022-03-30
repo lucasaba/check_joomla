@@ -56,6 +56,7 @@ $updatefileContent = '<extensionset name="Joomla Core" description="Joomla! Core
 <extension name="Joomla" element="joomla" type="file" version="3.10.4" targetplatformversion="3.10" detailsurl="https://update.joomla.org/core/sts/extension_sts.xml"/>
 <extension name="Joomla" element="joomla" type="file" version="4.0.0" targetplatformversion="3.10" detailsurl="https://update.joomla.org/core/sts/extension_sts.xml"/>
 <extension name="Joomla" element="joomla" type="file" version="4.0.0" targetplatformversion="4.0" detailsurl="https://update.joomla.org/core/sts/extension_sts.xml"/>
+<extension name="Joomla" element="joomla" type="file" version="4.1.0" targetplatformversion="4.1" detailsurl="https://update.joomla.org/core/sts/extension_sts.xml"/>
 </extensionset>';
 
 $result = [
@@ -106,6 +107,19 @@ $result = [
 $calculated = calculateUpdate($result, true, $updatefileContent);
 
 $result = test($calculated, 1); // Should update
+if ($result) {
+    exit($result);
+}
+
+$result = [
+    'MAJOR' => 4,
+    'MINOR' => 1,
+    'PATCH' => 1
+];
+
+$calculated = calculateUpdate($result, true, $updatefileContent);
+
+$result = test($calculated, 0); // Should not update
 if ($result) {
     exit($result);
 }
